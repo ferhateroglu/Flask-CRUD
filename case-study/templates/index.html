@@ -66,7 +66,7 @@
 							</div>
 						</th>
 						<td class="px-6 py-4"><span>{{", ".join(meeting.participants)}}</span></td>
-						<td class="px-6 py-4"><span>{{meeting.date}}</span></td>
+						<td class="px-6 py-4"><span>{{meeting.date_}}</span></td>
 						<td class="px-6 py-4">
 							<div class="flex gap-2">
 								<span
@@ -89,7 +89,7 @@
 									<svg onclick="deleteMeeting(event)" data-id={{meeting.id}}
 										xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
 										stroke-width="1.5" stroke="currentColor" class="h-6 w-6" x-tooltip="tooltip">
-										<path  stroke-linecap="round" stroke-linejoin="round"
+										<path stroke-linecap="round" stroke-linejoin="round"
 											d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
 									</svg>
 								</a>
@@ -269,7 +269,7 @@
 			// fill input fields
 			if (!currentState) {
 
-				if(event.target.tagName === 'svg') {
+				if (event.target.tagName === 'svg') {
 					targetElement = event.target.parentElement.parentElement.parentElement.parentElement;
 					selectedMeetingId = event.target.dataset.id;
 				} else {
@@ -367,15 +367,26 @@
 				},
 				body: JSON.stringify(data),
 			})
-				.then(response => response.json())
-				.then(data => {
-					console.log('Success:', data);
-					toggleModal();
-					location.reload();
+				.then(response => {
+					if(response.status == 200){
+						location.reload();
+					}else if(response.status == 403){
+						return response.json();
+					}else{
+						alert("Something went wrong");
+					}
 				})
-				.catch((error) => {
-					console.error('Error:', error);
-				});
+				.then(data => {
+					if(data){
+						let keys = Object.keys(data);
+						let errorString = "";
+						let firstKey = keys[0];
+						let errorArr = data[firstKey]
+						errorString += firstKey + " " +errorArr[0];
+
+						alert(errorString);
+					}
+				 })
 		}
 
 		// update meeting
@@ -401,9 +412,26 @@
 					'Content-Type': 'application/json',
 				},
 				body: JSON.stringify(data),
-			}).then(response => {
-				location.reload();
-			}).catch((error) => { console.error('Error:', error); });
+			})	.then(response => {
+					if(response.status == 200){
+						location.reload();
+					}else if(response.status == 403){
+						return response.json();
+					}else{
+						alert("Something went wrong");
+					}
+				})
+				.then(data => {
+					if(data){
+						let keys = Object.keys(data);
+						let errorString = "";
+						let firstKey = keys[0];
+						let errorArr = data[firstKey]
+						errorString += firstKey + " " +errorArr[0];
+
+						alert(errorString);
+					}
+				 })
 		}
 
 		// delete meeting
@@ -411,7 +439,7 @@
 			event.preventDefault();
 			let meetingId = null;
 
-			if(event.target.tagName === 'svg') {
+			if (event.target.tagName === 'svg') {
 				meetingId = event.target.dataset.id;
 			} else {
 				meetingId = event.target.parentElement.dataset.id;

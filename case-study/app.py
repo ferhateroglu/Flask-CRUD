@@ -1,6 +1,7 @@
 import os
 from flask import Flask, render_template, redirect, url_for, jsonify, request
 import requests
+from flask_cors import CORS
 
 from database.models import Meeting, db
 from utlis.validation_schema import validate_body, validate_id
@@ -14,6 +15,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(database_dir, 'data.sqlite')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
+CORS(app)
 
 @app.route("/")
 def home():
@@ -68,7 +70,7 @@ def create_meeting():
         # request verilerini doğrulama
         validation_errors = validate_body(request, "create_meeting_schema")
         if validation_errors:
-            return jsonify(validation_errors), 400
+            return jsonify(validation_errors), 403
 
         # Meeting nesnesini oluşturma
         data = request.get_json()
@@ -79,7 +81,7 @@ def create_meeting():
         participants = ", ".join(data['participants'])
 
         # Meeting nesnesini veritabanına ekleme
-        meeting = Meeting(topic=topic, date=date_, start_time=start_time, end_time=end_time, participants=participants)
+        meeting = Meeting(topic=topic, date_=date_, start_time=start_time, end_time=end_time, participants=participants)
         db.session.add(meeting)
         db.session.commit()
 
@@ -95,11 +97,11 @@ def update_meeting(id):
         # request verilerini doğrulama
         validation_errors = validate_id(id)
         if validation_errors:
-            return jsonify(validation_errors), 400
+            return jsonify(validation_errors), 403
         
         validation_errors = validate_body(request, "update_meeting_schema")
         if validation_errors:
-            return jsonify(validation_errors), 400
+            return jsonify(validation_errors), 403
         
         # Meeting nesnesi varsa güncelleme
         meeting = Meeting.query.get(id)
